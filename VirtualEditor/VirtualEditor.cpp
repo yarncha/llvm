@@ -24,6 +24,17 @@ struct VirtualPass : public FunctionPass {
           // 할당할 변수들을 넣을 공간 생성
 
           IRBuilder<> builder(entry_bb);
-          Value *var = builder.CreateAlloca(builder.getInt32Ty());
-          Value *var2 = builder.CreateAlloca(builder.getInt32Ty());
+          Value *var_retval = builder.CreateAlloca(builder.getInt32Ty());
+          Value *var_i = builder.CreateAlloca(builder.getInt32Ty());
           // retval, i에 해당하는 변수 할당
+
+          Value *value_0 = Constant::getNullValue(builder.getInt32Ty());
+          StoreInst *store_inst = new StoreInst(value_0, var_i, entry_bb);
+          // i 변수에 0값 넣어줌
+
+          BranchInst::Create(original_entry_bb, entry_bb);
+          BasicBlock::iterator to_remove = entry_bb->begin();
+          Instruction *inst_to_remove = &(*to_remove);
+          inst_to_remove->dropAllReferences();
+          inst_to_remove->eraseFromParent();
+          // entry_bb의 끝에 분기문을 넣어주고 원래 있던 분기문을 삭제
