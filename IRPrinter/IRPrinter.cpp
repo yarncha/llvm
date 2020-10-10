@@ -14,10 +14,12 @@ namespace {
 
         for (Instruction &i : bb)
           errs() << "- Instruction : " << i << "\n";
-        for (BasicBlock::iterator it = bb->begin(); it != bb->end(); it++) {
-          Instruction* i = &(*it);
-          errs() << *i << "\n";
-        }
+
+        // 다른 방법
+        // for (BasicBlock::iterator it = bb->begin(); it != bb->end(); it++) {
+        //   Instruction* i = &(*it);
+        //   errs() << "- Instruction : " << *i << "\n";
+        // }
       }
 
       return false;
