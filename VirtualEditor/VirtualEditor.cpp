@@ -38,3 +38,40 @@ struct VirtualPass : public FunctionPass {
           inst_to_remove->dropAllReferences();
           inst_to_remove->eraseFromParent();
           // entry_bb의 끝에 분기문을 넣어주고 원래 있던 분기문을 삭제
+
+          //---완
+
+          BasicBlock::iterator split_point_for = original_entry_bb->begin();
+          for (int counter = 0; counter < 6; counter++) {
+            split_point_for++;
+          }
+          BasicBlock *functioning_bb = original_entry_bb->splitBasicBlock(
+              split_point_for, "functioning_bb");
+
+          BasicBlock::iterator split_point_ret = functioning_bb->begin();
+          for (int counter = 0; counter < 7; counter++) {
+            split_point_ret++;
+          }
+          BasicBlock *return_bb =
+              functioning_bb->splitBasicBlock(split_point_for, "return_bb");
+          // 연산 부분과 return 부분 나누기
+
+          entry_bb->dump();
+          original_entry_bb->dump();
+          functioning_bb->dump();
+          return_bb->dump();
+
+          // BinaryOperator::Create(Instruction::Add, op, rhs, "", nextInst);
+          // BinaryOperator::Create(Instruction::Add, op, rhs, "", nextInst);
+
+          // IRBuilder<> builderBody(VMBodyBB);
+          // builderBody.createSwitch(pc_switch, defaultBB, bbs.size());
+        }
+      }
+      return false;
+    }
+  }
+};
+} // namespace
+
+char VirtualPass::ID = 0;
