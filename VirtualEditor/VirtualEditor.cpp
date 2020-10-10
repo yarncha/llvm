@@ -78,14 +78,16 @@ struct VirtualPass : public FunctionPass {
               end_bb->splitBasicBlock(split_point_ret, "returnBB");
           // condBB, bodyBB, endBB, returnBB로 구분
 
-          // Value *lhs = new LoadInst(Type::getInt32Ty(f.getContext()), var_i, "",
+          // Value *lhs = new LoadInst(Type::getInt32Ty(f.getContext()), var_i,
+          // "",
           //                           cond_bb);
           IRBuilder<> builder_cond(cond_bb);
           Value *lhs = builder_cond.CreateLoad(var_i);
           // i값을 condBB에 load
           // ICmpInst *cond_instruction =
           //     new ICmpInst(cond_bb, ICmpInst::ICMP_SGE, lhs, value_0,"");
-          Value *cond_instruction = builder_cond.CreateICmpSGE(lhs, value_0, "");
+          Value *cond_instruction =
+              builder_cond.CreateICmpSGE(lhs, value_0, "");
           BranchInst::Create(body_bb, end_bb, cond_instruction, cond_bb);
           // i의 값에 따라 bodyBB와 endBB로 분기하는 분기문 생성
           BasicBlock::iterator to_remove_cond = cond_bb->begin();
@@ -97,24 +99,38 @@ struct VirtualPass : public FunctionPass {
           IRBuilder<> builder_end(end_bb);
           builder_end.CreateStore(value_0, var_retval, /*isVolatile=*/false);
           builder_end.CreateBr(return_bb);
-          BasicBlock::iterator to_remove_end= end_bb->begin();
+          BasicBlock::iterator to_remove_end = end_bb->begin();
           Instruction *inst_to_remove_end = &(*to_remove_end);
           inst_to_remove_end->dropAllReferences();
           inst_to_remove_end->eraseFromParent();
           // endBB에 0대입하는 것 넣어주기
 
+          //---테스트 완료---
+          BasicBlock::iterator split_point_switch_start = body_bb->begin();
+          BasicBlock *case_bb =
+              body_bb->splitBasicBlock(split_point_switch_start, "caseBB");
 
-          entry_bb->dump();
-          original_entry_bb->dump();
-          functioning_bb->dump();
+          IRBuilder<> builder_body(body_bb);
+          Value *var_switch = builder_body.CreateLoad(var_i);
+          builder_body.CreateSwitch(var_switch, case_bb, 10);
+          builder_body.CreateBr(end_bb);
+          BasicBlock::iterator to_remove_body = body_bb->begin();
+          Instruction *inst_to_remove_body = &(*to_remove_body);
+          inst_to_remove_body->dropAllReferences();
+          inst_to_remove_body->eraseFromParent();
+          // switch문 추가
+
+          // entry_bb->dump();
+          // original_entry_bb->dump();
+          // cond_bb->dump();
+          body_bb->dump();
+          case_bb->dump();
+          end_bb->dump();
           return_bb->dump();
           //프린트하는 부분
 
           // BinaryOperator::Create(Instruction::Add, op, rhs, "", nextInst);
           // BinaryOperator::Create(Instruction::Add, op, rhs, "", nextInst);
-
-          // IRBuilder<> builderBody(VMBodyBB);
-          // builderBody.createSwitch(pc_switch, defaultBB, bbs.size());
         }
       }
       return false;
