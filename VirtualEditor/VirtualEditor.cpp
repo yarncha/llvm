@@ -48,14 +48,14 @@ struct VirtualPass : public FunctionPass {
             split_point_for++;
           }
           BasicBlock *functioning_bb = original_entry_bb->splitBasicBlock(
-              split_point_for, "functioning_bb");
+              split_point_for, "functioningBB");
 
           BasicBlock::iterator split_point_ret = functioning_bb->begin();
           for (int counter = 0; counter < 7; counter++) {
             split_point_ret++;
           }
           BasicBlock *return_bb =
-              functioning_bb->splitBasicBlock(split_point_ret, "return_bb");
+              functioning_bb->splitBasicBlock(split_point_ret, "returnBB");
           // 연산 부분과 return 부분 나누기
 
           entry_bb->dump();
