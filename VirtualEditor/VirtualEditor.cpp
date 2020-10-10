@@ -55,7 +55,7 @@ struct VirtualPass : public FunctionPass {
             split_point_ret++;
           }
           BasicBlock *return_bb =
-              functioning_bb->splitBasicBlock(split_point_for, "return_bb");
+              functioning_bb->splitBasicBlock(split_point_ret, "return_bb");
           // 연산 부분과 return 부분 나누기
 
           entry_bb->dump();
