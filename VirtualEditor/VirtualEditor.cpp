@@ -1,6 +1,6 @@
 #include "llvm/IR/Constants.h"
-#include "llvm/IR/Instructions.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/TypeBuilder.h"
 using namespace llvm;
 
@@ -41,22 +41,29 @@ struct VirtualPass : public FunctionPass {
           inst_to_remove->eraseFromParent();
           // entry_bb의 끝에 분기문을 넣어주고 원래 있던 분기문을 삭제
 
-          //---완
-
-          BasicBlock::iterator split_point_for = original_entry_bb->begin();
+          BasicBlock::iterator split_point_cond = original_entry_bb->begin();
           for (int counter = 0; counter < 6; counter++) {
-            split_point_for++;
+            split_point_cond++;
           }
-          BasicBlock *functioning_bb = original_entry_bb->splitBasicBlock(
-              split_point_for, "functioningBB");
+          BasicBlock *cond_bb =
+              original_entry_bb->splitBasicBlock(split_point_cond, "condBB");
 
-          BasicBlock::iterator split_point_ret = functioning_bb->begin();
+          BasicBlock::iterator split_point_end = cond_bb->begin();
           for (int counter = 0; counter < 7; counter++) {
-            split_point_ret++;
+            split_point_end++;
           }
+          BasicBlock *end_bb =
+              cond_bb->splitBasicBlock(split_point_end, "endBB");
+
+          BasicBlock::iterator split_point_body = cond_bb->begin();
+          BasicBlock *body_bb =
+              cond_bb->splitBasicBlock(split_point_body, "bodyBB");
+
+          BasicBlock::iterator split_point_ret = end_bb->begin();
           BasicBlock *return_bb =
-              functioning_bb->splitBasicBlock(split_point_ret, "returnBB");
-          // 연산 부분과 return 부분 나누기
+              end_bb->splitBasicBlock(split_point_ret, "returnBB");
+          // condBB, bodyBB, endBB, returnBB로 구분
+
 
           entry_bb->dump();
           original_entry_bb->dump();
