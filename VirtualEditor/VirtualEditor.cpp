@@ -19,6 +19,7 @@ struct VirtualPass : public FunctionPass {
     BasicBlock * splitted= target_basicblock->splitBasicBlock(split_point, new_basicblock_name);
     return splitted;
   }
+  // target_basicblock -> new_basicblock 구조로 만들어짐
 
   void deleteInstructionWithPosition(BasicBlock *target_basicblock, int number_to_move) {
     BasicBlock::iterator to_remove = target_basicblock->begin();
@@ -57,7 +58,7 @@ struct VirtualPass : public FunctionPass {
 
 
           BasicBlock *cond_bb = splitBasicBlockWithNumberAndName(original_entry_bb,"condBB",6);
-          BasicBlock *end_bb = splitBasicBlockWithNumberAndName(cond_bb,"endBB",7);
+          BasicBlock *end_bb = splitBasicBlockWithNumberAndName(cond_bb,"endBB",8);
           BasicBlock *body_bb = splitBasicBlockWithNumberAndName(cond_bb,"bodyBB",0);
           BasicBlock *return_bb = splitBasicBlockWithNumberAndName(end_bb,"returnBB",0);
           // condBB, bodyBB, endBB, returnBB로 나누기
@@ -72,7 +73,6 @@ struct VirtualPass : public FunctionPass {
           deleteInstructionWithPosition(cond_bb, 0);
           // condBB의 원래 분기문을 없애면 condBB부분 완성
 
-
           IRBuilder<> builder_end(end_bb);
           builder_end.CreateStore(value_0, var_retval, false);
           // endBB에 0대입하는 것 넣어주기
@@ -80,20 +80,32 @@ struct VirtualPass : public FunctionPass {
           deleteInstructionWithPosition(end_bb, 0);
           // endBB부분 완성
 
+          IRBuilder<> builder_ret(return_bb);
+          Value *var_to_ret = builder_ret.CreateLoad(var_retval);
+          Value *return_inst = builder_ret.CreateRet(var_to_ret);
+          deleteInstructionWithPosition(return_bb, 0);
+          // returnBB에서 retval을 리턴할 수 있도록 변경
 
-          
+          BasicBlock *case_bb = splitBasicBlockWithNumberAndName(body_bb,"caseBB",0);
+          IRBuilder<> builder_body(body_bb);
+          Value *var_switch = builder_body.CreateLoad(var_i);
+          deleteInstructionWithPosition(body_bb, 0);
+          //switch문을 넣을 body_bb
+
+          BasicBlock *sw_epliog_bb = BasicBlock::Create(f.getContext(), "epliogBB", &f, end_bb);
+          IRBuilder<> builder_epliog(sw_epliog_bb);
+          builder_epliog.CreateBr(cond_bb);
+          // 에필로그 블럭 생성
+
+          builder_body.CreateSwitch(var_switch, sw_epliog_bb, 10);
+          // 스위치문 생성
 
           //---테스트 완료---
-          // BasicBlock::iterator split_point_switch_start = body_bb->begin();
-          // BasicBlock *case_bb =
-          //     body_bb->splitBasicBlock(split_point_switch_start, "caseBB");
-          //
-          // IRBuilder<> builder_body(body_bb);
-          // Value *var_switch = builder_body.CreateLoad(var_i);
-          //
-          // builder_body.CreateSwitch(var_switch, case_bb, 10);
-          //
-          // builder_body.CreateBr(end_bb);
+
+          BasicBlock *case_2_bb = splitBasicBlockWithNumberAndName(case_bb,"case2BB",4);
+          BasicBlock *case_3_bb = splitBasicBlockWithNumberAndName(case_2_bb,"case3BB",3);
+          //case 세 개로 나누기
+
           //
           // BasicBlock::iterator to_remove_body = body_bb->begin();
           // Instruction *inst_to_remove_body = &(*to_remove_body);
@@ -105,7 +117,10 @@ struct VirtualPass : public FunctionPass {
           original_entry_bb->dump();
           cond_bb->dump();
           body_bb->dump();
-          // case_bb->dump();
+          case_bb->dump();
+          case_2_bb->dump();
+          case_3_bb->dump();
+          sw_epliog_bb->dump();
           end_bb->dump();
           return_bb->dump();
           //프린트하는 부분
