@@ -97,7 +97,7 @@ struct VirtualPass : public FunctionPass {
           builder_epliog.CreateBr(cond_bb);
           // 에필로그 블럭 생성
 
-          builder_body.CreateSwitch(var_switch, sw_epliog_bb, 10);
+          SwitchInst *switch_inst = builder_body.CreateSwitch(var_switch, sw_epliog_bb, 10);
           // 스위치문 생성
 
           //---테스트 완료---
@@ -106,13 +106,30 @@ struct VirtualPass : public FunctionPass {
           BasicBlock *case_3_bb = splitBasicBlockWithNumberAndName(case_2_bb,"case3BB",3);
           //case 세 개로 나누기
 
-          //
-          // BasicBlock::iterator to_remove_body = body_bb->begin();
-          // Instruction *inst_to_remove_body = &(*to_remove_body);
-          // inst_to_remove_body->dropAllReferences();
-          // inst_to_remove_body->eraseFromParent();
-          // switch문 추가
+          IRBuilder<> builder_case(case_bb);
+          deleteInstructionWithPosition(case_bb, (case_bb->size())-1);
+          Value *value_1 = builder_case.getInt32(1);
+          builder_case.CreateStore(value_1, var_i, false);
+          builder_case.CreateBr(sw_epliog_bb);
 
+          IRBuilder<> builder_case_2(case_2_bb);
+          deleteInstructionWithPosition(case_2_bb, (case_2_bb->size())-1);
+          Value *value_2 = builder_case.getInt32(2);
+          builder_case_2.CreateStore(value_2, var_i, false);
+          builder_case_2.CreateBr(sw_epliog_bb);
+
+          IRBuilder<> builder_case_3(case_3_bb);
+          deleteInstructionWithPosition(case_3_bb, (case_3_bb->size())-1);
+          Value *loaded_data = &(*(case_3_bb->begin()));
+          builder_case_3.CreateStore(loaded_data, var_retval, false);
+          builder_case_3.CreateBr(return_bb);
+          //각 case에 대한 작업
+
+          switch_inst->addCase(builder_body.getInt32(0),case_bb);
+          switch_inst->addCase(builder_body.getInt32(1),case_2_bb);
+          switch_inst->addCase(builder_body.getInt32(2),case_3_bb);
+          //addcase
+          
           entry_bb->dump();
           original_entry_bb->dump();
           cond_bb->dump();
