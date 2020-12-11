@@ -43,6 +43,24 @@ struct ControlPass : public FunctionPass {
       }
     }
 
+      false_bb->getTerminator()->eraseFromParent();
+      condition_bb->getTerminator()->eraseFromParent();
+
+      ICmpInst *cond_instruction = new ICmpInst(condition_bb->getFirstNonPHIOrDbgOrLifetime(), ICmpInst::ICMP_EQ, lhs, rhs, "newCond");
+      BranchInst::Create(true_bb, false_bb, cond_instruction, condition_bb);
+      //양 변이 EQ한지를 비교하고, 이에 따른 분기문을 만들어 넣는다.
+
+      condition_bb->dump();
+      true_bb->dump();
+      false_bb->dump();
+
+      BasicBlock::iterator to_remove = condition_bb->begin();
+      to_remove++;
+      Instruction *inst_to_remove = &(*to_remove);
+      inst_to_remove->dropAllReferences();
+      inst_to_remove->eraseFromParent();
+      //필요 없는 기존의 instruction지운다
+    }
     return false;
   }
 };
