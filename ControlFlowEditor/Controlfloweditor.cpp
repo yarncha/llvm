@@ -11,6 +11,7 @@ struct ControlPass : public FunctionPass {
   virtual bool runOnFunction(Function &func) {
     errs() << "- Start of function [" << func.getName() << "]\n";
 
+    std::vector<BasicBlock*> all_basic_blocks;
     for (BasicBlock &bb : func) {
       if (bb.getName() == "if.then") { // if.then블럭에서만 난독화 진행
         BasicBlock *if_then_bb = &bb;  // BasicBlock 클래스를 사용하기 위해 바꿔줌
