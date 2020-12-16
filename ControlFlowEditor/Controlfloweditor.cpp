@@ -42,6 +42,8 @@ struct ControlPass : public FunctionPass {
         errs() << "AFTER";
         if_then_bb->dump();
       }
+      all_basic_blocks.push_back(&bb);
+      errs() << bb.getName() << "\n";
     }
 
       false_bb->getTerminator()->eraseFromParent();
